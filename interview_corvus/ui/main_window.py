@@ -788,8 +788,11 @@ class MainWindow(QMainWindow):
                     )
                     self.solution_ready.emit(solution)
                 except Exception as e:
+                    err_message = str(e)
                     logger.info(f"Error in processing thread: {e}")
-                    self.error_occurred.emit(str(e))
+                    if 'NoneType' in err_message:
+                        err_message += '\nTip: check your VPN'
+                    self.error_occurred.emit(err_message)
 
         # Create and start the thread
         self.processing_thread = ScreenshotProcessingThread(

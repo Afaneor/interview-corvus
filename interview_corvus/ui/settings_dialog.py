@@ -83,7 +83,7 @@ class SettingsDialog(QDialog):
 
         # API Provider
         self.provider_combo = QComboBox()
-        self.provider_combo.addItems(["OpenAI", "Anthropic"])
+        self.provider_combo.addItems(["OpenAI", "Anthropic", "Openrouter"])
         self.provider_combo.currentTextChanged.connect(self.on_provider_changed)
         llm_form_layout.addRow("API Provider:", self.provider_combo)
 
@@ -274,10 +274,8 @@ class SettingsDialog(QDialog):
         if index >= 0:
             self.language_combo.setCurrentIndex(index)
 
-        # Default to OpenAI
-        self.provider_combo.setCurrentText("OpenAI")
-
-        # LLM settings
+        # default LLM from loaded settings
+        self.provider_combo.setCurrentText(settings.llm.provider)
         self.model_combo.setCurrentText(settings.llm.model)
         self.temperature_input.setValue(settings.llm.temperature)
 
@@ -297,6 +295,7 @@ class SettingsDialog(QDialog):
 
         # Save LLM settings
         settings.llm.model = self.model_combo.currentText()
+        settings.llm.provider = self.provider_combo.currentText()
         settings.llm.temperature = self.temperature_input.value()
 
         if self.screenshot_hotkey.text():
@@ -355,8 +354,26 @@ class SettingsDialog(QDialog):
         """
         self.model_combo.clear()
 
-        if provider == "OpenAI":
-            self.model_combo.addItems(
+        if provider == "Openrouter":
+            self.model_combo.addItems(  # Set Openrouter selection list
+                [
+                    "openai/chatgpt-4o-latest",
+                    "openai/gpt-4o-mini",
+                    "openai/o3-mini",
+                    "anthropic/claude-3.7-sonnet",
+                    "google/gemini-2.5-pro-preview-03-25"
+                ]
+            )
+            self.model_combo.setCurrentText("openai/chatgpt-4o-latest")  # Set Openrouter default
+            self.api_key_input.setPlaceholderText("Enter Openrouter API key")
+        elif provider == "Anthropic":
+            self.model_combo.addItems(  # Set Anthropic selection list
+                ["claude-3-7-sonnet-latest", "claude-3-5-haiku-latest"]
+            )
+            self.model_combo.setCurrentText("claude-3-7-sonnet-latest")  # Set Anthropic default
+            self.api_key_input.setPlaceholderText("Enter Anthropic API key")
+        else:
+            self.model_combo.addItems(  # Set OpenAI selection list
                 [
                     "gpt-4o",
                     "o3-mini",
@@ -365,18 +382,8 @@ class SettingsDialog(QDialog):
                     "o1-mini",
                 ]
             )
+            self.model_combo.setCurrentText("gpt-4o")  # Set OpenAI default
             self.api_key_input.setPlaceholderText("Enter OpenAI API key")
-        elif provider == "Anthropic":
-            self.model_combo.addItems(
-                ["claude-3-7-sonnet-latest", "claude-3-5-haiku-latest"]
-            )
-            self.api_key_input.setPlaceholderText("Enter Anthropic API key")
-
-            # Set default model based on provider
-        if provider == "OpenAI":
-            self.model_combo.setCurrentText("gpt-4o")  # Set default to o3-mini
-        else:
-            self.model_combo.setCurrentText("claude-3-7-sonnet-latest")
 
     def toggle_api_key_visibility(self, state):
         """
@@ -407,19 +414,26 @@ class SettingsDialog(QDialog):
             QApplication.processEvents()  # Update UI
 
             # Import appropriate library based on provider
-            if self.provider_combo.currentText() == "OpenAI":
+            if self.provider_combo.currentText() == "Openrouter":
                 from openai import OpenAI
-
-                client = OpenAI(api_key=api_key)
+                client = OpenAI(
+                    base_url="https://openrouter.ai/api/v1", api_key=api_key)
                 client.chat.completions.create(
+                    model= self.model_combo.currentText(),
+                    messages=[
+                        {"role": "user", "content": "Hello, are you working?"}],
+                )
+            elif self.provider_combo.currentText() == "Anthropic":
+                from anthropic import Anthropic
+                client = Anthropic(api_key=api_key)
+                client.messages.create(
                     model=self.model_combo.currentText(),
                     messages=[{"role": "user", "content": "Hello, are you working?"}],
                 )
-            else:  # Anthropic
-                from anthropic import Anthropic
-
-                client = Anthropic(api_key=api_key)
-                client.messages.create(
+            else:
+                from openai import OpenAI
+                client = OpenAI(api_key=api_key)
+                client.chat.completions.create(
                     model=self.model_combo.currentText(),
                     messages=[{"role": "user", "content": "Hello, are you working?"}],
                 )

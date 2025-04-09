@@ -15,6 +15,7 @@ pyobjc-core = { version = "^11.0", markers = "sys_platform == 'darwin'" }
 pyobjc-framework-cocoa = { version = "^11.0", markers = "sys_platform == 'darwin'" }
 pyobjc-framework-quartz = { version = "^11.0", markers = "sys_platform == 'darwin'" }
 llama-index-llms-anthropic = "^0.6.10"
+llama-index-llms-openrouter = "^0.3.1"
 loguru = "^0.7.3"
 pynput = "^1.8.1"
 

@@ -16,10 +16,9 @@ class APIKeyManager:
 
     def _get_env_var_name(self):
         """Get the appropriate environment variable name based on the model."""
-        if any(
-            model_prefix in settings.llm.model
-            for model_prefix in ["claude", "anthropic"]
-        ):
+        if "Openrouter" in settings.llm.provider:
+            return "OPENROUTER_API_KEY"
+        elif "Anthropic" in settings.llm.provider:
             return "ANTHROPIC_API_KEY"
         else:
             return "OPENAI_API_KEY"
