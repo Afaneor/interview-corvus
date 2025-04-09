@@ -4,6 +4,7 @@ from llama_index.core.base.llms.types import ChatMessage, ImageBlock, MessageRol
 from llama_index.core.chat_engine import SimpleChatEngine
 from llama_index.llms.anthropic import Anthropic
 from llama_index.llms.openai import OpenAI
+from llama_index.llms.openrouter import OpenRouter
 from loguru import logger
 from pydantic import BaseModel
 from PyQt6.QtCore import QObject, pyqtSignal
@@ -29,24 +30,34 @@ class LLMService(QObject):
         api_key = APIKeyManager().get_api_key()
 
         # Determine if we're using OpenAI or Anthropic based on model name
-        is_anthropic = any(
-            model_prefix in settings.llm.model
-            for model_prefix in ["claude", "anthropic"]
-        )
-
-        if is_anthropic:
+        if "Openrouter" in settings.llm.provider:
+            self.llm = OpenRouter(
+                model=settings.llm.model,
+                temperature=settings.llm.temperature,
+                api_key=api_key,
+                max_tokens=settings.llm.max_tokens,
+                max_retries=settings.llm.max_retries,
+                timeout=settings.llm.timeout,
+            )
+            logger.info(
+                f"Initialized Openrouter LLM with model: {settings.llm.model}")
+        elif "Anthropic" in settings.llm.provider:
             self.llm = Anthropic(
                 model=settings.llm.model,
                 temperature=settings.llm.temperature,
                 api_key=api_key,
-                max_tokens=12000,  # Set an appropriate max tokens value
+                max_tokens=settings.llm.max_tokens,
+                max_retries=settings.llm.max_retries,
+                timeout=settings.llm.timeout,
             )
-        else:
-            # Initialize OpenAI client
+            logger.info(
+                f"Initialized Anthropic LLM with model: {settings.llm.model}")
+        else:  # Initialize OpenAI client
             self.llm = OpenAI(
                 model=settings.llm.model,
                 temperature=settings.llm.temperature,
                 api_key=api_key,
+                max_tokens=settings.llm.max_tokens,
                 max_retries=settings.llm.max_retries,
                 timeout=settings.llm.timeout,
             )
@@ -149,3 +160,4 @@ class LLMService(QObject):
         structured = self.llm.as_structured_llm(output_cls=CodeSolution)
         response = structured.chat(chat_messages)
         return response.raw
+

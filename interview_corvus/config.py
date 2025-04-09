@@ -1,7 +1,7 @@
 import json
 import sys
 from pathlib import Path
-from typing import Dict, List
+from typing import Dict, List, Optional
 
 from loguru import logger
 from pydantic import Field, field_validator
@@ -11,10 +11,12 @@ from pydantic_settings import BaseSettings, SettingsConfigDict
 class LLMSettings(BaseSettings):
     """Settings for the LLM service."""
 
+    provider: str = "OpenAI"
     model: str = "gpt-4o"
     temperature: float = 1
     max_retries: int = 3
-    timeout: int = 60
+    max_tokens: Optional[int] = 5000
+    timeout: int = 90
     # Use streaming for more responsive output
     streaming: bool = False
 
@@ -280,6 +282,7 @@ class Settings(BaseSettings):
         user_settings = {
             "default_language": self.default_language,
             "llm": {
+                "provider": self.llm.provider,
                 "model": self.llm.model,
                 "temperature": self.llm.temperature,
                 "streaming": self.llm.streaming,
@@ -322,6 +325,8 @@ class Settings(BaseSettings):
 
             if "llm" in user_settings:
                 llm_settings = user_settings["llm"]
+                if "provider" in llm_settings:
+                    self.llm.provider = llm_settings["provider"]
                 if "model" in llm_settings:
                     self.llm.model = llm_settings["model"]
                 if "temperature" in llm_settings:
