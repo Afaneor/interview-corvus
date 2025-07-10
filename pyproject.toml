@@ -8,7 +8,7 @@ readme = "README.md"
 [tool.poetry.dependencies]
 python = ">=3.11,<3.14"
 pydantic-settings = "^2.8.1"
-llama-index = "^0.12.26"
+llama-index = "^0.12.41"
 keyring = "^25.6.0"
 pyqt6 = "^6.8.1"
 pyobjc-core = { version = "^11.0", markers = "sys_platform == 'darwin'" }
