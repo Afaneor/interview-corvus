@@ -259,6 +259,12 @@ class Settings(BaseSettings):
     hotkeys: HotkeySettings = Field(default_factory=HotkeySettings)
     prompts: PromptTemplates = Field(default_factory=PromptTemplates)
 
+    # macOS-specific setting
+    screen_reader_protection: bool = Field(
+        default=False,
+        description="Enable to prevent window capture during screen sharing (macOS only).",
+    )
+
     @field_validator("app_data_dir", mode="before")
     @classmethod
     def create_app_dir(cls, v):
@@ -300,6 +306,9 @@ class Settings(BaseSettings):
             },
             "prompts": {"templates": self.prompts.templates},
         }
+
+        if sys.platform == "darwin":
+            user_settings["screen_reader_protection"] = self.screen_reader_protection
 
         # Save to JSON
         with open(settings_path, "w") as f:
@@ -368,6 +377,12 @@ class Settings(BaseSettings):
 
             if "prompts" in user_settings and "templates" in user_settings["prompts"]:
                 self.prompts.templates = user_settings["prompts"]["templates"]
+
+            if sys.platform == "darwin":
+                if "screen_reader_protection" in user_settings:
+                    self.screen_reader_protection = user_settings[
+                        "screen_reader_protection"
+                    ]
 
         except Exception as e:
             logger.info(f"Error loading user settings: {e}")

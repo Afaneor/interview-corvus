@@ -137,6 +137,9 @@ class InvisibilityManager(QObject):
     def _show_window(self):
         """Show and activate the window with platform-specific handling."""
         logger.info("Making window visible")
+        from interview_corvus.config import settings
+        if settings.screen_reader_protection:
+            self.set_screen_reader_protection(False)
 
         if self.is_macos:
             # macOS requires special handling for reliable window activation
@@ -153,9 +156,40 @@ class InvisibilityManager(QObject):
             self.window_handle.raise_()
             self.window_handle.activateWindow()
 
+    def set_screen_reader_protection(self, enabled: bool):
+        """
+        Set the screen reader protection for the window (macOS only).
+
+        Args:
+            enabled: True to enable protection, False to disable
+        """
+        if not self.is_macos:
+            return
+
+        try:
+            from AppKit import NSWindow, NSWindowSharingType
+
+            native_handle = self.window_handle.winId()
+            window = NSWindow.alloc().initWithWindowRef_(native_handle)
+
+            if enabled:
+                window.setSharingType_(NSWindowSharingType.NSWindowSharingNone)
+                logger.info("Screen reader protection enabled for macOS.")
+            else:
+                window.setSharingType_(NSWindowSharingType.NSWindowSharingReadOnly)
+                logger.info("Screen reader protection disabled for macOS.")
+
+        except ImportError:
+            logger.error("Failed to import AppKit for macOS screen reader protection.")
+        except Exception as e:
+            logger.error(f"Error setting macOS screen reader protection: {e}")
+
     def _hide_window(self):
         """Hide the window."""
         logger.info("Hiding window")
+        from interview_corvus.config import settings
+        if settings.screen_reader_protection:
+            self.set_screen_reader_protection(True)
         self.window_handle.hide()
 
     def set_visibility_without_activation(self, visible: bool) -> bool:
