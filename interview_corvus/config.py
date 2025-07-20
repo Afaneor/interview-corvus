@@ -17,6 +17,18 @@ class LLMSettings(BaseSettings):
     timeout: int = 60
     # Use streaming for more responsive output
     streaming: bool = False
+    available_models: List[str] = Field(
+        default_factory=lambda: [
+            "gpt-4o",
+            "gpt-4-turbo",
+            "gpt-3.5-turbo",
+            "claude-3-opus-20240229",
+            "claude-3-sonnet-20240229",
+            "claude-3-haiku-20240307",
+            "gemini-1.5-pro-latest",
+            "gemini-1.0-pro",
+        ]
+    )
 
     # API key should be stored securely, not in config
     api_key_env_var: str = "OPENAI_API_KEY"
