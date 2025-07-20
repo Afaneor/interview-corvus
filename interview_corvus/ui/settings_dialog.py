@@ -290,6 +290,7 @@ class SettingsDialog(QDialog):
             logger.info(f"Could not load API key: {e}")
             # No API key exists
 
+
     def save_settings(self):
         """Save settings from the UI."""
         # Save language setting
@@ -337,6 +338,7 @@ class SettingsDialog(QDialog):
                 self.api_key_manager.set_api_key(api_key)
             except Exception as e:
                 QMessageBox.warning(self, "Error", f"Error saving API key: {e}")
+
 
         try:
             settings.save_user_settings()

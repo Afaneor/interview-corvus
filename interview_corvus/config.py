@@ -259,6 +259,12 @@ class Settings(BaseSettings):
     hotkeys: HotkeySettings = Field(default_factory=HotkeySettings)
     prompts: PromptTemplates = Field(default_factory=PromptTemplates)
 
+    # macOS-specific setting
+    screen_reader_protection: bool = Field(
+        default=True,
+        description="Enable to prevent window capture during screen sharing (macOS only).",
+    )
+
     @field_validator("app_data_dir", mode="before")
     @classmethod
     def create_app_dir(cls, v):
