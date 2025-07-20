@@ -181,6 +181,52 @@ class InvisibilityManager(QObject):
         except Exception as e:
             logger.error(f"Error setting macOS screen reader protection: {e}")
 
+    def set_screen_reader_protection(self, enabled: bool):
+        """
+        Set the screen reader protection for the window.
+
+        Args:
+            enabled: True to enable protection, False to disable
+        """
+        if not self.window_handle:
+            return
+
+        if self.is_macos:
+            try:
+                from AppKit import NSWindow, NSWindowSharingType
+
+                native_handle = self.window_handle.winId()
+                window = NSWindow.alloc().initWithWindowRef_(native_handle)
+
+                if enabled:
+                    window.setSharingType_(NSWindowSharingType.NSWindowSharingNone)
+                    logger.info("Screen reader protection enabled for macOS.")
+                else:
+                    window.setSharingType_(NSWindowSharingType.NSWindowSharingReadOnly)
+                    logger.info("Screen reader protection disabled for macOS.")
+
+            except ImportError:
+                logger.error("Failed to import AppKit for macOS screen reader protection.")
+            except Exception as e:
+                logger.error(f"Error setting macOS screen reader protection: {e}")
+        else:
+            try:
+                import ctypes
+
+                hwnd = self.window_handle.winId()
+                if enabled:
+                    # WDA_EXCLUDEFROMCAPTURE
+                    ctypes.windll.user32.SetWindowDisplayAffinity(hwnd, 0x00000011)
+                    logger.info("Screen reader protection enabled for Windows.")
+                else:
+                    # WDA_NONE
+                    ctypes.windll.user32.SetWindowDisplayAffinity(hwnd, 0x00000000)
+                    logger.info("Screen reader protection disabled for Windows.")
+            except (ImportError, AttributeError):
+                logger.error("Failed to set screen reader protection for Windows.")
+            except Exception as e:
+                logger.error(f"Error setting Windows screen reader protection: {e}")
+
     def _hide_window(self):
         """Hide the window."""
         logger.info("Hiding window")

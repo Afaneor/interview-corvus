@@ -50,10 +50,8 @@ def main():
     # Показываем окно
     window.show()
 
-    # Apply screen reader protection if on macOS
-    import platform
-    if platform.system() == "Darwin":
-        invisibility_manager.set_screen_reader_protection(True)
+    # Apply screen reader protection
+    invisibility_manager.set_screen_reader_protection(True)
 
     # Start the application event loop
     sys.exit(app.exec())
