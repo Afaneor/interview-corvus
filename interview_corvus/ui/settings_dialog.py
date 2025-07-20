@@ -70,21 +70,6 @@ class SettingsDialog(QDialog):
         language_group.setLayout(language_layout)
         general_layout.addWidget(language_group)
 
-        # Screen reader protection (macOS only)
-        import platform
-        if platform.system() == "Darwin":
-            security_group = QGroupBox("Security")
-            security_layout = QFormLayout()
-
-            self.screen_reader_protection_checkbox = QCheckBox("Enable screen reader protection")
-            self.screen_reader_protection_checkbox.setToolTip(
-                "Prevents the window from being captured during screen sharing (requires restart)."
-            )
-            security_layout.addRow(self.screen_reader_protection_checkbox)
-
-            security_group.setLayout(security_layout)
-            general_layout.addWidget(security_group)
-
         # Add the general tab
         self.tab_widget.addTab(general_tab, "General")
 
@@ -305,12 +290,6 @@ class SettingsDialog(QDialog):
             logger.info(f"Could not load API key: {e}")
             # No API key exists
 
-        # Screen reader protection
-        import platform
-        if platform.system() == "Darwin":
-            self.screen_reader_protection_checkbox.setChecked(
-                settings.screen_reader_protection
-            )
 
     def save_settings(self):
         """Save settings from the UI."""
@@ -360,12 +339,6 @@ class SettingsDialog(QDialog):
             except Exception as e:
                 QMessageBox.warning(self, "Error", f"Error saving API key: {e}")
 
-        # Screen reader protection
-        import platform
-        if platform.system() == "Darwin":
-            settings.screen_reader_protection = (
-                self.screen_reader_protection_checkbox.isChecked()
-            )
 
         try:
             settings.save_user_settings()

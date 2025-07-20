@@ -137,9 +137,6 @@ class InvisibilityManager(QObject):
     def _show_window(self):
         """Show and activate the window with platform-specific handling."""
         logger.info("Making window visible")
-        from interview_corvus.config import settings
-        if settings.screen_reader_protection:
-            self.set_screen_reader_protection(False)
 
         if self.is_macos:
             # macOS requires special handling for reliable window activation
@@ -163,7 +160,7 @@ class InvisibilityManager(QObject):
         Args:
             enabled: True to enable protection, False to disable
         """
-        if not self.is_macos:
+        if not self.is_macos or not self.window_handle:
             return
 
         try:
@@ -187,9 +184,6 @@ class InvisibilityManager(QObject):
     def _hide_window(self):
         """Hide the window."""
         logger.info("Hiding window")
-        from interview_corvus.config import settings
-        if settings.screen_reader_protection:
-            self.set_screen_reader_protection(True)
         self.window_handle.hide()
 
     def set_visibility_without_activation(self, visible: bool) -> bool:
